@@ -34,12 +34,12 @@ export function useInfiniteScroll(
         }
     };
 
-    onMounted(() => {
+    onMounted(async () => {
         if (target.value) {
             observer.observe(target.value);
         }
         if (immediate) {
-            load();
+            await load();
         }
     });
 
