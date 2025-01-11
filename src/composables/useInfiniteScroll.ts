@@ -1,8 +1,12 @@
 import { ref, onMounted, onUnmounted, type Ref } from 'vue';
 import type {InfiniteScrollOptions, InfiniteScrollResult} from "@/types/infiite";
 
-
-
+/**
+ * Custom hook for implementing infinite scroll
+ * @param {() => Promise<void>} loadMore - Function to load more data
+ * @param {InfiniteScrollOptions} [options] - Options for the infinite scroll
+ * @returns {InfiniteScrollResult} The target element and loading state
+ */
 export function useInfiniteScroll(
     loadMore: () => Promise<void>,
     options: InfiniteScrollOptions = {}
@@ -23,16 +27,19 @@ export function useInfiniteScroll(
 
     const load = async (): Promise<void> => {
         isLoading.value = true;
-        await loadMore();
-        isLoading.value = false;
+        try {
+            await loadMore();
+        } finally {
+            isLoading.value = false;
+        }
     };
 
-    onMounted(async () => {
+    onMounted(() => {
         if (target.value) {
             observer.observe(target.value);
         }
         if (immediate) {
-            await load();
+            load();
         }
     });
 
