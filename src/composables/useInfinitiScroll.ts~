@@ -1,0 +1,37 @@
+import { ref, onMounted, onUnmounted } from 'vue';
+
+/**
+ * A composable for implementing infinite scroll functionality
+ * @param {() => Promise<void>} loadMore - A function to load more items
+ * @param {number} threshold - The distance from the bottom of the page to trigger loading more items
+ * @returns {object} An object containing the target ref and isLoading state
+ */
+export function useInfiniteScroll(loadMore: () => Promise<void>, threshold = 100) {
+    const target = ref<HTMLElement | null>(null);
+    const isLoading = ref(false);
+
+    const observer = new IntersectionObserver(
+        async (entries) => {
+            if (entries[0].isIntersecting && !isLoading.value) {
+                isLoading.value = true;
+                await loadMore();
+                isLoading.value = false;
+            }
+        },
+        {
+            rootMargin: `0px 0px ${threshold}px 0px`,
+        }
+    );
+
+    onMounted(() => {
+        if (target.value) {
+            observer.observe(target.value);
+        }
+    });
+
+    onUnmounted(() => {
+        observer.disconnect();
+    });
+
+    return { target, isLoading };
+}
